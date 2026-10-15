@@ -1,0 +1,38 @@
+name: Build iPhone IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-ios:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Build unsigned device app
+        run: bash scripts/build_unsigned_ipa.sh
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: AcousticIntensityScanner-iPhone15Pro-unsigned-ipa
+          path: output/AcousticIntensityScanner.ipa
+          if-no-files-found: error
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: AcousticIntensityScanner-build-log
+          path: output/xcodebuild.log
+          if-no-files-found: warn
