@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 rm -rf build output
-mkdir -p output
+mkdir -p build output
 
 PROJECT="AcousticIntensityScanner.xcodeproj"
 TARGET="AcousticIntensityScanner"
@@ -15,12 +15,11 @@ xcodebuild \
   -target "$TARGET" \
   -configuration Release \
   -sdk iphoneos \
-  -destination 'generic/platform=iOS' \
-  -derivedDataPath "$ROOT/build/DerivedData" \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
   CODE_SIGN_IDENTITY="" \
   DEVELOPMENT_TEAM="" \
+  SYMROOT="$ROOT/build" \
   build | tee "$ROOT/output/xcodebuild.log"
 STATUS=${PIPESTATUS[0]}
 set -e
@@ -29,9 +28,10 @@ if [ "$STATUS" -ne 0 ]; then
   exit "$STATUS"
 fi
 
-APP_PATH=$(find "$ROOT/build/DerivedData/Build/Products/Release-iphoneos" -maxdepth 2 -name '*.app' -type d | head -1)
+APP_PATH=$(find "$ROOT/build" -type d -name 'AcousticIntensityScanner.app' | head -1)
 if [ -z "$APP_PATH" ]; then
   echo "No .app bundle found after build"
+  find "$ROOT/build" -maxdepth 4 -type d -print || true
   exit 1
 fi
 
