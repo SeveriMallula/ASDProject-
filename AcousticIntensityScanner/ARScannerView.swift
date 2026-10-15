@@ -48,9 +48,11 @@ struct ARScannerView: UIViewRepresentable {
         func session(_ session: ARSession, didAdd anchors: [ARAnchor]) { ingest(anchors) }
         func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) { ingest(anchors) }
         func session(_ session: ARSession, didRemove anchors: [ARAnchor]) {
-            for anchor in anchors {
-                planes.removeValue(forKey: anchor.identifier)
-                if let entity = rendered.removeValue(forKey: anchor.identifier) { view?.scene.removeAnchor(entity) }
+            DispatchQueue.main.async {
+                for anchor in anchors {
+                    self.planes.removeValue(forKey: anchor.identifier)
+                    if let entity = self.rendered.removeValue(forKey: anchor.identifier) { self.view?.scene.removeAnchor(entity) }
+                }
             }
         }
 
@@ -61,6 +63,7 @@ struct ARScannerView: UIViewRepresentable {
             DispatchQueue.main.async { self.refresh() }
         }
 
+        @MainActor
         func refresh() {
             guard let view else { return }
             for (_, entity) in rendered { view.scene.removeAnchor(entity) }
